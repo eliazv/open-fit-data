@@ -25,7 +25,7 @@ Il mio contributo qui sotto non riscrive la roadmap: la **stress-testa**, segnal
 | Scelta | Perché è giusta |
 |---|---|
 | **Flutter + package `health`** | Una sola codebase per Android+iOS, e `health` astrae già Health Connect e HealthKit. Evita di scrivere bridge nativi Kotlin/Swift nella v1. |
-| **Drift + SQLite** | Type-safe, reattivo (stream → UI), migrazioni gestite. Perfetto per un archivio locale che crescerà di schema nel tempo. |
+| **Drift + SQLite** | Type-safe, reattivo (stream → UI), migrazioni gestite. Perfetto per un archivio locale che crescerà di schema nel tempo. *Nota: non sono alternative — Drift è il layer Dart che gira sopra SQLite. Vedi §8.1.* |
 | **Tabella raw + tabelle aggregate** | Pattern corretto: conservi il grezzo (verità) e derivi gli aggregati (velocità UI). Se sbagli un'aggregazione, ricalcoli senza riperdere i dati. |
 | **`metadata_json` / `raw_json`** | Salva ciò che non sai ancora normalizzare. Evita perdita di dati e migrazioni dolorose. Ottima mossa difensiva. |
 | **Sync manuale nella v1** | Niente background workers, niente battaglie con Doze/battery optimization. Si parte semplici e si misura. |
@@ -139,6 +139,18 @@ Quando *questo* funziona con i tuoi dati reali, hai dimostrato l'intera tesi del
 ## 8. Stack: cosa confermo e cosa preciserei
 
 Confermo lo stack della roadmap. Preciserei solo le versioni/scelte operative:
+
+### 8.1 Chiarimento: "Drift o SQLite?" — non sono in competizione
+
+Domanda ricorrente. **Drift *è* SQLite.** Sotto c'è sempre il motore SQLite; Drift è il layer Dart type-safe che ci gira sopra. Le vere alternative sono:
+
+- **`sqflite`** → SQLite grezzo: SQL scritto a mano come stringhe, nessun controllo a compile-time, nessuna reattività.
+- **Drift** → SQLite + query controllate dal compilatore + migrazioni gestite + stream reattivi (query → UI che si aggiorna da sola). **Questa è la scelta giusta per noi.**
+- **Hive / Isar** → NoSQL: da scartare, un archivio con aggregazioni e range temporali vuole SQL relazionale.
+
+Quindi "Drift + SQLite" nella roadmap è scritto correttamente: Drift è *il modo* in cui usiamo SQLite, non un'opzione concorrente.
+
+### 8.2 Stack operativo
 
 - **State management:** Riverpod va benissimo. Tenerlo minimale (provider semplici). Non serve Bloc per un'app di questa natura.
 - **Routing:** per poche schermate, anche solo `Navigator`; `go_router` solo se il flusso cresce.
