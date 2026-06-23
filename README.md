@@ -1,0 +1,84 @@
+# Open Fit Data
+
+> I tuoi dati fitness, finalmente tuoi.
+
+App Flutter **local-first** per archiviare, esportare e analizzare i dati di
+**Health Connect** (Android). Non è un clone di Strava né un coach AI a
+pagamento: è una **cassaforte personale** per i tuoi dati salute/fitness,
+portabili e pronti per ChatGPT/Claude/Gemini.
+
+**Archivio. Export. AI-ready.**
+
+## Funzioni (v1 Android)
+
+- 🔄 **Sync automatico** in background (~2×/giorno) + sync all'avvio + manuale
+- 🗄️ **Archivio locale** SQLite (Drift) con deduplica
+- 📊 **Dashboard + Trends** (passi, distanza, sonno, peso, battito) con grafici
+- 🏃 **Allenamenti** importati con dettaglio (passo, velocità, FC)
+- 🤖 **Briefing AI** pronti da incollare (7g / 30g / piano corsa / confronto mesi)
+- ⬇️ **Export** CSV / JSON / Markdown / ZIP per periodo
+- 🔒 **Privacy**: nessun account, nessun cloud obbligatorio, nessun tracking
+
+## Stack
+
+Flutter · Riverpod · Drift (SQLite) · `health` · workmanager · fl_chart ·
+animations · share_plus · csv · archive
+
+## Setup
+
+Questo repository contiene il codice `lib/` e la configurazione del progetto.
+Le cartelle native (`android/`) si generano con Flutter:
+
+```bash
+# 1. Genera gli shell nativi senza toccare lib/
+flutter create . --org com.eliazavatta --project-name open_fit_data --platforms=android
+
+# 2. Dipendenze
+flutter pub get
+
+# 3. Codegen Drift (genera lib/data/db/database.g.dart)
+dart run build_runner build --delete-conflicting-outputs
+
+# 4. Applica la configurazione Health Connect
+#    Vedi: docs/ANDROID_SETUP.md  (manifest, permessi, MainActivity)
+
+# 5. Avvia
+flutter run
+```
+
+> ⚠️ **Importante:** Health Connect richiede modifiche al manifest Android, la
+> dichiarazione dei permessi salute e `MainActivity` che estende
+> `FlutterFragmentActivity`. Tutti i dettagli in **`docs/ANDROID_SETUP.md`**.
+
+## Architettura
+
+```
+lib/
+  app/        — App, tema, providers (DI Riverpod), gate onboarding
+  core/       — costanti, enum periodo
+  data/
+    db/       — database Drift (tabelle raw, daily_summaries, workouts, meta)
+    models/   — CanonicalRecord / WorkoutRecord (layer cross-platform)
+    repositories/ — ArchiveRepository
+  services/   — health_sync, sync, background_sync, summary,
+                deduplication, export, ai_briefing
+  features/   — onboarding, shell, home, archive, workouts,
+                ai_briefing, export, settings
+  widgets/    — design system (MetricCard, SyncStatusCard, charts, ...)
+```
+
+Il layer `CanonicalRecord` disaccoppia l'app dai tipi del package `health`:
+l'aggiunta di iOS (HealthKit) sarà un secondo "source" senza toccare
+archivio/UI. Vedi `ANALISI_ROADMAP.md` §3.3.
+
+## Documenti
+
+- [`ROADMAP.md`](ROADMAP.md) — visione e piano per fasi
+- [`ANALISI_ROADMAP.md`](ANALISI_ROADMAP.md) — analisi tecnica/di prodotto
+- [`DESIGN_UI.md`](DESIGN_UI.md) — design system e direzione UI
+- [`docs/ANDROID_SETUP.md`](docs/ANDROID_SETUP.md) — configurazione nativa
+- [`IMPLEMENTAZIONE.md`](IMPLEMENTAZIONE.md) — stato della v1 e note
+
+## Licenza
+
+[AGPL-3.0](LICENSE).

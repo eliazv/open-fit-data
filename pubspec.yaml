@@ -1,0 +1,53 @@
+name: open_fit_data
+description: "Local-first health & fitness data vault. Archive, export and AI-ready briefings from Health Connect / Apple Health."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+
+  # Local storage (Drift = type-safe layer over SQLite)
+  drift: ^2.18.0
+  sqlite3_flutter_libs: ^0.5.24
+  path_provider: ^2.1.3
+  path: ^1.9.0
+
+  # Health data (Health Connect on Android, HealthKit on iOS)
+  health: ^11.0.0
+
+  # Background auto-sync
+  workmanager: ^0.5.2
+
+  # Charts (trends)
+  fl_chart: ^0.68.0
+
+  # Material motion (page transitions, container transform)
+  animations: ^2.0.11
+
+  # Export & sharing
+  share_plus: ^9.0.0
+  csv: ^6.0.0
+  archive: ^3.6.1
+
+  # Formatting
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  # Drift code generation
+  drift_dev: ^2.18.0
+  build_runner: ^2.4.11
+
+flutter:
+  uses-material-design: true
