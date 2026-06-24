@@ -28,6 +28,7 @@ dependencies:
 
   # Charts (trends)
   fl_chart: ^0.68.0
+  smooth_charts: ^0.0.3
 
   # Material motion (page transitions, container transform)
   animations: ^2.0.11

@@ -3,9 +3,9 @@
 > I tuoi dati fitness, finalmente tuoi.
 
 App Flutter **local-first** per archiviare, esportare e analizzare i dati di
-**Health Connect** (Android). Non è un clone di Strava né un coach AI a
-pagamento: è una **cassaforte personale** per i tuoi dati salute/fitness,
-portabili e pronti per ChatGPT/Claude/Gemini.
+**Health Connect** (Android) e **Apple Health** (iOS). Non è un clone di Strava
+né un coach AI a pagamento: è una **cassaforte personale** per i tuoi dati
+salute/fitness, portabili e pronti per ChatGPT/Claude/Gemini.
 
 **Archivio. Export. AI-ready.**
 
@@ -15,8 +15,10 @@ portabili e pronti per ChatGPT/Claude/Gemini.
 - 🗄️ **Archivio locale** SQLite (Drift) con deduplica
 - 📊 **Dashboard + Trends** (passi, distanza, sonno, peso, battito) con grafici
 - 🏃 **Allenamenti** importati con dettaglio (passo, velocità, FC)
+- 📝 **Note manuali** giornaliere (energia, fatica, dolori) → arricchiscono i briefing
 - 🤖 **Briefing AI** pronti da incollare (7g / 30g / piano corsa / confronto mesi)
 - ⬇️ **Export** CSV / JSON / Markdown / ZIP per periodo
+- 🍎 **iOS** via Apple Health (stesso archivio/UI; vedi `docs/IOS_SETUP.md`)
 - 🔒 **Privacy**: nessun account, nessun cloud obbligatorio, nessun tracking
 
 ## Stack
@@ -30,8 +32,8 @@ Questo repository contiene il codice `lib/` e la configurazione del progetto.
 Le cartelle native (`android/`) si generano con Flutter:
 
 ```bash
-# 1. Genera gli shell nativi senza toccare lib/
-flutter create . --org com.eliazavatta --project-name open_fit_data --platforms=android
+# 1. Genera gli shell nativi senza toccare lib/ (android + ios)
+flutter create . --org com.eliazavatta --project-name open_fit_data --platforms=android,ios
 
 # 2. Dipendenze
 flutter pub get
@@ -76,7 +78,8 @@ archivio/UI. Vedi `ANALISI_ROADMAP.md` §3.3.
 - [`ROADMAP.md`](ROADMAP.md) — visione e piano per fasi
 - [`ANALISI_ROADMAP.md`](ANALISI_ROADMAP.md) — analisi tecnica/di prodotto
 - [`DESIGN_UI.md`](DESIGN_UI.md) — design system e direzione UI
-- [`docs/ANDROID_SETUP.md`](docs/ANDROID_SETUP.md) — configurazione nativa
+- [`docs/ANDROID_SETUP.md`](docs/ANDROID_SETUP.md) — configurazione Android
+- [`docs/IOS_SETUP.md`](docs/IOS_SETUP.md) — configurazione iOS (HealthKit)
 - [`IMPLEMENTAZIONE.md`](IMPLEMENTAZIONE.md) — stato della v1 e note
 
 ## Licenza

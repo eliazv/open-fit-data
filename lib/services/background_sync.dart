@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:workmanager/workmanager.dart';
 
 import '../data/db/database.dart';
@@ -37,10 +39,14 @@ void backgroundCallbackDispatcher() {
 /// Configura auto-sync periodico (~1×/giorno). Best-effort: il sistema può
 /// rimandare per Doze/batteria, ma resta dentro la finestra dei 30 giorni di
 /// Health Connect (vedi ANALISI_ROADMAP §5).
+///
+/// Periodico solo su Android: su iOS il background è molto più limitato
+/// (BGTaskScheduler) e ci affidiamo al sync all'avvio. Vedi docs/IOS_SETUP.md.
 class BackgroundSyncManager {
   const BackgroundSyncManager();
 
   Future<void> initialize() async {
+    if (!Platform.isAndroid) return;
     await Workmanager().initialize(
       backgroundCallbackDispatcher,
       isInDebugMode: false,
@@ -48,6 +54,7 @@ class BackgroundSyncManager {
   }
 
   Future<void> enablePeriodicSync() async {
+    if (!Platform.isAndroid) return;
     await Workmanager().registerPeriodicTask(
       BackgroundTasks.uniqueName,
       BackgroundTasks.periodicSync,
@@ -60,6 +67,7 @@ class BackgroundSyncManager {
   }
 
   Future<void> disablePeriodicSync() async {
+    if (!Platform.isAndroid) return;
     await Workmanager().cancelByUniqueName(BackgroundTasks.uniqueName);
   }
 }

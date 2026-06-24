@@ -55,17 +55,20 @@ class AiBriefingService {
     required BriefingKind kind,
     required List<DailySummary> primary,
     List<DailySummary> previous = const [],
+    String? userNote,
   }) {
-    switch (kind) {
-      case BriefingKind.last7:
-        return _period(primary, 7);
-      case BriefingKind.last30:
-        return _period(primary, 30);
-      case BriefingKind.runningPlan:
-        return _runningPlan(primary);
-      case BriefingKind.compareMonths:
-        return _compare(primary, previous);
-    }
+    final body = switch (kind) {
+      BriefingKind.last7 => _period(primary, 7),
+      BriefingKind.last30 => _period(primary, 30),
+      BriefingKind.runningPlan => _runningPlan(primary),
+      BriefingKind.compareMonths => _compare(primary, previous),
+    };
+    return '$body${_noteSection(userNote)}\n$_disclaimer\n';
+  }
+
+  String _noteSection(String? note) {
+    if (note == null || note.trim().isEmpty) return '';
+    return '\n## Note manuali\n$note\n';
   }
 
   String _period(List<DailySummary> s, int days) {
@@ -84,9 +87,7 @@ class AiBriefingService {
       ..writeln('## Richiesta')
       ..writeln('1. Analizza il mio stato attuale.')
       ..writeln('2. Valuta se il carico è equilibrato.')
-      ..writeln('3. Suggerisci 3 azioni concrete per la prossima settimana.')
-      ..writeln()
-      ..writeln(_disclaimer);
+      ..writeln('3. Suggerisci 3 azioni concrete per la prossima settimana.');
     return b.toString();
   }
 
@@ -113,9 +114,7 @@ class AiBriefingService {
           ..writeln('1. Analizza lo stato attuale.')
           ..writeln('2. Valuta il rischio di sovraccarico.')
           ..writeln('3. Crea un piano corsa per i prossimi 7 giorni.')
-          ..writeln('4. Dimmi cosa monitorare e quando ridurre il carico.')
-          ..writeln()
-          ..writeln(_disclaimer))
+          ..writeln('4. Dimmi cosa monitorare e quando ridurre il carico.'))
         .toString();
   }
 
@@ -138,9 +137,7 @@ class AiBriefingService {
           ..writeln('## Richiesta')
           ..writeln('1. Confronta i due periodi.')
           ..writeln('2. Dimmi se sto migliorando o peggiorando.')
-          ..writeln('3. Suggerisci come progredire in sicurezza.')
-          ..writeln()
-          ..writeln(_disclaimer))
+          ..writeln('3. Suggerisci come progredire in sicurezza.'))
         .toString();
   }
 

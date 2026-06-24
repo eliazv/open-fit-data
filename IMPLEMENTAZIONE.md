@@ -17,7 +17,10 @@ Riepilogo di cosa è stato costruito nella prima versione e note operative.
 | Dashboard Home | ✅ | `features/home/` |
 | Archivio + Trends (fl_chart) | ✅ | `features/archive/` |
 | Allenamenti (lista + dettaglio) | ✅ | `features/workouts/` |
-| Briefing AI (7g/30g/piano/confronto) | ✅ | `features/ai_briefing/` |
+| Note manuali giornaliere | ✅ | `features/notes/`, tabella `UserNotes` |
+| Briefing AI (7g/30g/piano/confronto) + note | ✅ | `features/ai_briefing/` |
+| Grafico peso (smooth_charts) | ✅ | `widgets/weight_line_chart.dart` |
+| Supporto iOS (Apple Health) | ✅ | `docs/IOS_SETUP.md`, mapping piattaforma |
 | Export CSV/JSON/Markdown/ZIP | ✅ | `services/export_service.dart`, `features/export/` |
 | Impostazioni (toggle auto-sync, disclaimer) | ✅ | `features/settings/` |
 | UI Material 3 + animazioni (`animations`) | ✅ | `features/shell/app_shell.dart`, `app/theme.dart` |
@@ -44,12 +47,21 @@ Health Connect senza permesso storico (vedi ANALISI_ROADMAP §5).
 sviluppo non aveva la toolchain Flutter, quindi `lib/` è stato scritto a mano).
 
 ```bash
-flutter create . --org com.eliazavatta --project-name open_fit_data --platforms=android
+flutter create . --org com.eliazavatta --project-name open_fit_data --platforms=android,ios
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs   # genera database.g.dart
-# Applica docs/ANDROID_SETUP.md (manifest, permessi, MainActivity)
+# Android: applica docs/ANDROID_SETUP.md (manifest, permessi, MainActivity)
+# iOS:     applica docs/IOS_SETUP.md (capability HealthKit, Info.plist)
 flutter run
 ```
+
+## iOS
+
+iOS riusa archivio/dedup/summary/export/briefing: cambia solo la sorgente
+(HealthKit via package `health`, già cross-platform). `availability()` e
+`BackgroundSyncManager` hanno i rami per piattaforma. Auto-sync su iOS = sync
+all'avvio (il background periodico affidabile è solo Android). Setup nativo in
+`docs/IOS_SETUP.md`.
 
 ## Note / cose da verificare in locale
 

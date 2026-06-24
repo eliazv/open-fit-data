@@ -5,6 +5,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/format.dart';
 import '../../widgets/metric_card.dart';
 import '../../widgets/sync_status_card.dart';
+import '../notes/notes_screen.dart';
 import 'home_controller.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -86,6 +87,20 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ],
             ),
+          const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.edit_note),
+              title: const Text('Come ti senti oggi?'),
+              subtitle: const Text(
+                  'Aggiungi una nota: energia, fatica, dolori. Migliora i '
+                  'briefing AI.'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const NotesScreen()),
+              ),
+            ),
+          ),
         ],
       ),
     );

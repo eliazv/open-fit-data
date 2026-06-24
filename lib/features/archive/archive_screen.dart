@@ -7,6 +7,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/format.dart';
 import '../../widgets/metric_card.dart';
 import '../../widgets/period_selector.dart';
+import '../../widgets/weight_line_chart.dart';
 import '../workouts/workouts_screen.dart';
 import 'archive_controller.dart';
 
@@ -63,6 +64,10 @@ class ArchiveScreen extends ConsumerWidget {
     }
 
     final steps = summaries.map((s) => (s.steps ?? 0).toDouble()).toList();
+    final weights = summaries
+        .where((s) => s.weightKg != null)
+        .map((s) => s.weightKg!)
+        .toList();
     final totalSteps =
         summaries.fold<int>(0, (a, b) => a + (b.steps ?? 0));
     final avgSteps = (totalSteps / summaries.length).round();
@@ -95,6 +100,22 @@ class ArchiveScreen extends ConsumerWidget {
             ),
           ),
         ),
+        if (weights.length >= 2) ...[
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Peso', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 12),
+                  WeightLineChart(weights: weights),
+                ],
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         GridView.count(
           crossAxisCount: 2,

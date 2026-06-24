@@ -74,13 +74,30 @@ class AppMeta extends Table {
   Set<Column> get primaryKey => {key};
 }
 
-@DriftDatabase(tables: [HealthRawRecords, DailySummaries, Workouts, AppMeta])
+/// Note manuali giornaliere: i dati automatici non spiegano tutto (dolore,
+/// stanchezza, stress). Una nota per giorno, alimenta i briefing AI.
+@DataClassName('UserNote')
+class UserNotes extends Table {
+  TextColumn get date => text()(); // yyyy-MM-dd
+  IntColumn get energyLevel => integer().nullable()(); // 1..5
+  IntColumn get fatigueLevel => integer().nullable()(); // 1..5
+  TextColumn get painNotes => text().nullable()();
+  TextColumn get freeNote => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {date};
+}
+
+@DriftDatabase(
+  tables: [HealthRawRecords, DailySummaries, Workouts, AppMeta, UserNotes],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   // Migrazioni versionate dal giorno 1 (vedi ANALISI_ROADMAP §4): lo schema
   // crescerà con le metriche avanzate di Fase 4.
@@ -88,7 +105,9 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) => m.createAll(),
         onUpgrade: (m, from, to) async {
-          // Aggiungere qui gli step di migrazione quando schemaVersion sale.
+          if (from < 2) {
+            await m.createTable(userNotes);
+          }
         },
       );
 }

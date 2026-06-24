@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../app/providers.dart';
+import '../../data/db/database.dart';
 import '../../services/ai_briefing_service.dart';
 
 class AiBriefingScreen extends ConsumerStatefulWidget {
@@ -25,6 +26,9 @@ class _AiBriefingScreenState extends ConsumerState<AiBriefingScreen> {
     final service = ref.read(aiBriefingServiceProvider);
     final now = DateTime.now();
 
+    final note = await repo.latestNote();
+    final noteText = note == null ? null : _formatNote(note);
+
     Future<List> range(int days) {
       final from = _fmt.format(now.subtract(Duration(days: days - 1)));
       return repo.summariesInRange(from, _fmt.format(now));
@@ -33,10 +37,12 @@ class _AiBriefingScreenState extends ConsumerState<AiBriefingScreen> {
     String text;
     switch (kind) {
       case BriefingKind.last7:
-        text = service.build(kind: kind, primary: await _cast(range(7)));
+        text = service.build(
+            kind: kind, primary: await _cast(range(7)), userNote: noteText);
       case BriefingKind.last30:
       case BriefingKind.runningPlan:
-        text = service.build(kind: kind, primary: await _cast(range(30)));
+        text = service.build(
+            kind: kind, primary: await _cast(range(30)), userNote: noteText);
       case BriefingKind.compareMonths:
         final startCurrent = DateTime(now.year, now.month, 1);
         final startPrev = DateTime(now.year, now.month - 1, 1);
@@ -46,7 +52,10 @@ class _AiBriefingScreenState extends ConsumerState<AiBriefingScreen> {
             _fmt.format(startPrev),
             _fmt.format(startCurrent.subtract(const Duration(days: 1))));
         text = service.build(
-            kind: kind, primary: current, previous: previous);
+            kind: kind,
+            primary: current,
+            previous: previous,
+            userNote: noteText);
     }
 
     setState(() {
@@ -56,6 +65,16 @@ class _AiBriefingScreenState extends ConsumerState<AiBriefingScreen> {
   }
 
   Future<List<T>> _cast<T>(Future<List> f) async => (await f).cast<T>();
+
+  String _formatNote(UserNote n) {
+    final parts = <String>[
+      if (n.energyLevel != null) 'energia ${n.energyLevel}/5',
+      if (n.fatigueLevel != null) 'fatica ${n.fatigueLevel}/5',
+      if (n.painNotes != null) 'dolori: ${n.painNotes}',
+      if (n.freeNote != null) n.freeNote!,
+    ];
+    return parts.isEmpty ? '' : '(${n.date}) ${parts.join('; ')}';
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -176,6 +176,46 @@ class ArchiveRepository {
     return row.read(count) ?? 0;
   }
 
+  // --- note manuali ---
+
+  Future<UserNote?> noteForDate(String date) {
+    return (_db.select(_db.userNotes)..where((t) => t.date.equals(date)))
+        .getSingleOrNull();
+  }
+
+  Future<UserNote?> latestNote() {
+    return (_db.select(_db.userNotes)
+          ..orderBy([(t) => OrderingTerm.desc(t.date)])
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  Future<List<UserNote>> recentNotes({int limit = 30}) {
+    return (_db.select(_db.userNotes)
+          ..orderBy([(t) => OrderingTerm.desc(t.date)])
+          ..limit(limit))
+        .get();
+  }
+
+  Future<void> upsertNote({
+    required String date,
+    int? energyLevel,
+    int? fatigueLevel,
+    String? painNotes,
+    String? freeNote,
+  }) {
+    return _db.into(_db.userNotes).insertOnConflictUpdate(
+          UserNotesCompanion.insert(
+            date: date,
+            energyLevel: Value(energyLevel),
+            fatigueLevel: Value(fatigueLevel),
+            painNotes: Value(painNotes),
+            freeNote: Value(freeNote),
+            createdAt: DateTime.now(),
+          ),
+        );
+  }
+
   // --- meta key/value ---
 
   Future<String?> getMeta(String key) async {

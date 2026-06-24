@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:health/health.dart';
 
 import '../data/models/canonical_record.dart';
@@ -47,6 +49,8 @@ class HealthSyncService {
   Future<void> configure() => _health.configure();
 
   Future<HealthAvailability> availability() async {
+    // iOS: la disponibilità è gestita da HealthKit (nessun "SDK status").
+    if (Platform.isIOS) return HealthAvailability.available;
     try {
       final status = await _health.getHealthConnectSdkStatus();
       switch (status) {
