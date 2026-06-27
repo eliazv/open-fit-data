@@ -40,6 +40,7 @@ class DailySummaries extends Table {
   RealColumn get avgHr => real().nullable()();
   RealColumn get weightKg => real().nullable()();
   RealColumn get vo2max => real().nullable()();
+  RealColumn get hrvMs => real().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
 
   @override
@@ -66,6 +67,20 @@ class Workouts extends Table {
 }
 
 /// Key-value store locale (ultimo sync, contatori, preferenze leggere).
+@DataClassName('SyncLog')
+class SyncLogs extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  DateTimeColumn get startedAt => dateTime()();
+  DateTimeColumn get endedAt => dateTime().nullable()();
+  TextColumn get trigger => text()();
+  TextColumn get status => text()();
+  IntColumn get rawRecords => integer().withDefault(const Constant(0))();
+  IntColumn get workouts => integer().withDefault(const Constant(0))();
+  IntColumn get insertedRaw => integer().withDefault(const Constant(0))();
+  IntColumn get insertedWorkouts => integer().withDefault(const Constant(0))();
+  TextColumn get message => text().nullable()();
+}
+
 class AppMeta extends Table {
   TextColumn get key => text()();
   TextColumn get value => text().nullable()();
@@ -90,14 +105,21 @@ class UserNotes extends Table {
 }
 
 @DriftDatabase(
-  tables: [HealthRawRecords, DailySummaries, Workouts, AppMeta, UserNotes],
+  tables: [
+    HealthRawRecords,
+    DailySummaries,
+    Workouts,
+    SyncLogs,
+    AppMeta,
+    UserNotes,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   // Migrazioni versionate dal giorno 1 (vedi ANALISI_ROADMAP §4): lo schema
   // crescerà con le metriche avanzate di Fase 4.
@@ -107,6 +129,10 @@ class AppDatabase extends _$AppDatabase {
         onUpgrade: (m, from, to) async {
           if (from < 2) {
             await m.createTable(userNotes);
+          }
+          if (from < 3) {
+            await m.addColumn(dailySummaries, dailySummaries.hrvMs);
+            await m.createTable(syncLogs);
           }
         },
       );

@@ -19,7 +19,15 @@ class WorkoutsScreen extends ConsumerWidget {
     final async = ref.watch(recentWorkoutsProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Allenamenti')),
-      body: async.when(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(syncServiceProvider).sync(
+                includeHistory: true,
+                trigger: 'workouts_refresh',
+              );
+          ref.invalidate(recentWorkoutsProvider);
+        },
+        child: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Errore: $e')),
         data: (workouts) {
@@ -38,6 +46,7 @@ class WorkoutsScreen extends ConsumerWidget {
             itemBuilder: (_, i) => _WorkoutTile(workout: workouts[i]),
           );
         },
+        ),
       ),
     );
   }

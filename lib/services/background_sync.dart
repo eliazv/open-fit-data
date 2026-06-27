@@ -25,7 +25,7 @@ void backgroundCallbackDispatcher() {
       final repo = ArchiveRepository(db);
       final sync = SyncService(HealthSyncService(), repo);
       // Non interattivo: se i permessi non ci sono, fallisce in silenzio.
-      await sync.sync(interactive: false);
+      await sync.sync(interactive: false, trigger: 'background');
       return true;
     } catch (_) {
       // Riproveremo al prossimo ciclo; non bloccare lo scheduler.
