@@ -21,6 +21,13 @@ salute/fitness, portabili e pronti per ChatGPT/Claude/Gemini.
 - 🍎 **iOS** via Apple Health (stesso archivio/UI; vedi `docs/IOS_SETUP.md`)
 - 🔒 **Privacy**: nessun account, nessun cloud obbligatorio, nessun tracking
 
+## Installazione
+
+Niente Play Store: APK firmato pubblicato nelle [GitHub Releases](https://github.com/eliazv/open-fit-data/releases).
+
+- **Manuale**: scarica l'ultimo `OpenFitData-vX.Y.Z.apk` dalla pagina Releases e installalo (serve consentire "sorgenti sconosciute").
+- **Aggiornamenti automatici**: usa [Obtainium](https://github.com/ImranR98/Obtainium) → "Add App" → URL del repo `https://github.com/eliazv/open-fit-data` → Obtainium rileva le release GitHub e ti avvisa/aggiorna ad ogni nuova versione, senza Play Store.
+
 ## Stack
 
 Flutter · Riverpod · Drift (SQLite) · `health` · workmanager · fl_chart ·
