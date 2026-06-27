@@ -66,37 +66,49 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Spacer(),
-              Icon(Icons.lock_outline,
-                  size: 56, color: theme.colorScheme.primary),
-              const SizedBox(height: 24),
-              Text('I tuoi dati fitness,\nfinalmente tuoi.',
-                  style: theme.textTheme.headlineMedium
-                      ?.copyWith(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 16),
-              Text(
-                'Open Fit Data archivia in locale i tuoi dati di Health '
-                'Connect. Niente account, niente cloud obbligatorio. '
-                'Esporti e generi briefing AI quando vuoi.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.lock_outline,
+                          size: 56, color: theme.colorScheme.primary),
+                      const SizedBox(height: 24),
+                      Text('I tuoi dati fitness,\nfinalmente tuoi.',
+                          style: theme.textTheme.headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Open Fit Data archivia in locale i tuoi dati di Health '
+                        'Connect. Niente account, niente cloud obbligatorio. '
+                        'Esporti e generi briefing AI quando vuoi.',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const _Bullet(
+                          icon: Icons.sync, text: 'Sync automatico e manuale'),
+                      const _Bullet(
+                          icon: Icons.storage,
+                          text: 'Archivio locale (SQLite)'),
+                      const _Bullet(
+                          icon: Icons.ios_share,
+                          text: 'Export CSV / JSON / Markdown'),
+                      const _Bullet(
+                          icon: Icons.auto_awesome,
+                          text: 'Briefing pronti per ChatGPT/Claude'),
+                      if (_error != null) ...[
+                        const SizedBox(height: 16),
+                        Text(_error!,
+                            style: TextStyle(color: theme.colorScheme.error)),
+                      ],
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
-              const _Bullet(
-                  icon: Icons.sync, text: 'Sync automatico e manuale'),
-              const _Bullet(
-                  icon: Icons.storage, text: 'Archivio locale (SQLite)'),
-              const _Bullet(
-                  icon: Icons.ios_share, text: 'Export CSV / JSON / Markdown'),
-              const _Bullet(
-                  icon: Icons.auto_awesome,
-                  text: 'Briefing pronti per ChatGPT/Claude'),
-              if (_error != null) ...[
-                const SizedBox(height: 16),
-                Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
-              ],
-              const Spacer(),
+              const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: _busy ? null : _connect,
                 icon: _busy
@@ -139,7 +151,7 @@ class _Bullet extends StatelessWidget {
         children: [
           Icon(icon, size: 20, color: theme.colorScheme.primary),
           const SizedBox(width: 12),
-          Text(text, style: theme.textTheme.bodyMedium),
+          Expanded(child: Text(text, style: theme.textTheme.bodyMedium)),
         ],
       ),
     );

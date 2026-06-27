@@ -59,7 +59,7 @@ class BackgroundSyncManager {
       BackgroundTasks.uniqueName,
       BackgroundTasks.periodicSync,
       frequency: const Duration(hours: 12),
-      existingWorkPolicy: ExistingWorkPolicy.keep,
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
       constraints: Constraints(networkType: NetworkType.notRequired),
       backoffPolicy: BackoffPolicy.linear,
       backoffPolicyDelay: const Duration(minutes: 30),

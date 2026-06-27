@@ -6,6 +6,7 @@ import '../../services/deduplication_service.dart';
 import '../../services/summary_service.dart';
 import '../db/database.dart';
 import '../models/canonical_record.dart';
+import '../models/metric_type.dart';
 import '../models/workout_record.dart';
 
 /// Unico punto d'accesso all'archivio locale: scrive record grezzi e workout,

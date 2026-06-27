@@ -123,7 +123,7 @@ class ArchiveScreen extends ConsumerWidget {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: 1.5,
+          childAspectRatio: 1.2,
           children: [
             MetricCard(
               label: 'Passi medi',

@@ -48,7 +48,14 @@ Subito sotto il tag `<manifest>`:
 <uses-permission android:name="android.permission.health.READ_SLEEP" />
 <uses-permission android:name="android.permission.health.READ_WEIGHT" />
 <uses-permission android:name="android.permission.health.READ_EXERCISE" />
+<uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
 ```
+
+> `READ_TOTAL_CALORIES_BURNED` è richiesto dal package `health` per leggere
+> `WORKOUT`: internamente aggiunge sempre il permesso su `DistanceRecord` e
+> `TotalCaloriesBurnedRecord` alla request. Se manca dal manifest, Health
+> Connect lo scarta silenziosamente dalla richiesta e la lettura dei workout
+> fallisce con `SecurityException` anche se l'utente ha "accettato tutto".
 
 > Aggiungere nuovi permessi SOLO quando si attiva la metrica relativa
 > (permessi just-in-time → review Play Store più semplice).
