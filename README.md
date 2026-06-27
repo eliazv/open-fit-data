@@ -82,12 +82,13 @@ archivio/UI. Vedi `ANALISI_ROADMAP.md` §3.3.
 
 ## Documenti
 
-- [`ROADMAP.md`](ROADMAP.md) — visione e piano per fasi
-- [`ANALISI_ROADMAP.md`](ANALISI_ROADMAP.md) — analisi tecnica/di prodotto
-- [`DESIGN_UI.md`](DESIGN_UI.md) — design system e direzione UI
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — visione e piano per fasi
+- [`docs/ANALISI_ROADMAP.md`](docs/ANALISI_ROADMAP.md) — analisi tecnica/di prodotto
+- [`docs/DESIGN_UI.md`](docs/DESIGN_UI.md) — design system e direzione UI
 - [`docs/ANDROID_SETUP.md`](docs/ANDROID_SETUP.md) — configurazione Android
 - [`docs/IOS_SETUP.md`](docs/IOS_SETUP.md) — configurazione iOS (HealthKit)
-- [`IMPLEMENTAZIONE.md`](IMPLEMENTAZIONE.md) — stato della v1 e note
+- [`docs/IMPLEMENTAZIONE.md`](docs/IMPLEMENTAZIONE.md) — stato della v1 e note
+- [`docs/RELEASING.md`](docs/RELEASING.md) — come pubblicare una nuova release
 
 ## Licenza
 

@@ -1,0 +1,2 @@
+- meno pagine , meno confusione
+- impostazioni in header togli e integra in altre pagine
