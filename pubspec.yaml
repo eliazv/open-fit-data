@@ -34,7 +34,7 @@ dependencies:
   animations: ^2.0.11
 
   # Export & sharing
-  share_plus: ^9.0.0
+  share_plus: ^12.0.2
   file_picker: ^8.1.2
   csv: ^6.0.0
   archive: ^3.6.1
@@ -51,5 +51,33 @@ dev_dependencies:
   drift_dev: ^2.18.0
   build_runner: ^2.4.11
 
+  # App icon & splash screen generation
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.1
+
 flutter:
   uses-material-design: true
+  assets:
+    - assets/logo.png
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/logo.png"
+  remove_alpha_ios: true
+  min_sdk_android: 26
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: "assets/logo.png"
+  color_dark: "#121417"
+  image_dark: "assets/logo.png"
+  android_12:
+    image: "assets/logo.png"
+    icon_background_color: "#FFFFFF"
+    image_dark: "assets/logo.png"
+    icon_background_color_dark: "#121417"
+  android: true
+  ios: true
