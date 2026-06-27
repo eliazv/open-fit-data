@@ -12,7 +12,8 @@ enum MetricType {
   sleep,
   weight,
   speed,
-  vo2max;
+  vo2max,
+  hrv;
 
   /// Identificatore stabile usato per persistenza e hash di deduplica.
   String get id => name;
@@ -35,6 +36,7 @@ enum MetricType {
         MetricType.weight => 'Peso',
         MetricType.speed => 'Velocità',
         MetricType.vo2max => 'VO2max',
+        MetricType.hrv => 'HRV',
       };
 }
 

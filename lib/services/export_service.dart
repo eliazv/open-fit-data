@@ -27,41 +27,127 @@ extension ExportFormatX on ExportFormat {
       };
 }
 
+enum ExportCategory { dailyMetrics, workouts, rawRecords }
+
+extension ExportCategoryX on ExportCategory {
+  String get label => switch (this) {
+        ExportCategory.dailyMetrics => 'Metriche giornaliere',
+        ExportCategory.workouts => 'Allenamenti',
+        ExportCategory.rawRecords => 'Dati grezzi',
+      };
+
+  String get slug => switch (this) {
+        ExportCategory.dailyMetrics => 'daily',
+        ExportCategory.workouts => 'workouts',
+        ExportCategory.rawRecords => 'raw',
+      };
+}
+
+class ExportPreview {
+  const ExportPreview({
+    required this.rows,
+    required this.estimatedBytes,
+    required this.fileStem,
+  });
+
+  final int rows;
+  final int estimatedBytes;
+  final String fileStem;
+}
+
 /// Genera file di export in formati aperti e li condivide via share sheet.
 class ExportService {
   const ExportService();
 
   static final DateFormat _stamp = DateFormat('yyyyMMdd_HHmm');
 
+  ExportPreview preview({
+    required ExportFormat format,
+    required List<DailySummary> summaries,
+    required List<Workout> workouts,
+    List<HealthRawRecord> rawRecords = const [],
+    required Set<ExportCategory> categories,
+    required String periodLabel,
+  }) {
+    final content = _contentFor(format, summaries, workouts, rawRecords, categories);
+    final bytes = format == ExportFormat.zip
+        ? _zip(summaries, workouts, rawRecords, categories).length
+        : utf8.encode(content).length;
+    return ExportPreview(
+      rows: (categories.contains(ExportCategory.dailyMetrics)
+              ? summaries.length
+              : 0) +
+          (categories.contains(ExportCategory.workouts) ? workouts.length : 0) +
+          (categories.contains(ExportCategory.rawRecords)
+              ? rawRecords.length
+              : 0),
+      estimatedBytes: bytes,
+      fileStem: _fileStem(periodLabel, categories),
+    );
+  }
+
   Future<void> exportAndShare({
     required ExportFormat format,
     required List<DailySummary> summaries,
     required List<Workout> workouts,
+    List<HealthRawRecord> rawRecords = const [],
+    Set<ExportCategory> categories = const {
+      ExportCategory.dailyMetrics,
+      ExportCategory.workouts,
+    },
+    String periodLabel = 'periodo',
   }) async {
     final dir = await getTemporaryDirectory();
-    final base = 'open_fit_data_${_stamp.format(DateTime.now())}';
+    final base = _fileStem(periodLabel, categories);
     final files = <XFile>[];
 
     switch (format) {
       case ExportFormat.csv:
         final file = File(p.join(dir.path, '$base.csv'));
-        await file.writeAsString(_summariesCsv(summaries));
+        await file.writeAsString(
+          _contentFor(format, summaries, workouts, rawRecords, categories),
+        );
         files.add(XFile(file.path));
       case ExportFormat.json:
         final file = File(p.join(dir.path, '$base.json'));
-        await file.writeAsString(_json(summaries, workouts));
+        await file.writeAsString(_json(summaries, workouts, rawRecords, categories));
         files.add(XFile(file.path));
       case ExportFormat.markdown:
         final file = File(p.join(dir.path, '$base.md'));
-        await file.writeAsString(_markdown(summaries, workouts));
+        await file.writeAsString(_markdown(summaries, workouts, rawRecords, categories));
         files.add(XFile(file.path));
       case ExportFormat.zip:
         final file = File(p.join(dir.path, '$base.zip'));
-        await file.writeAsBytes(_zip(summaries, workouts));
+        await file.writeAsBytes(_zip(summaries, workouts, rawRecords, categories));
         files.add(XFile(file.path));
     }
 
     await Share.shareXFiles(files, subject: 'Open Fit Data — export');
+  }
+
+  String _contentFor(
+    ExportFormat format,
+    List<DailySummary> s,
+    List<Workout> w,
+    List<HealthRawRecord> r,
+    Set<ExportCategory> categories,
+  ) =>
+      switch (format) {
+        ExportFormat.csv => categories.contains(ExportCategory.dailyMetrics)
+            ? _summariesCsv(s)
+            : categories.contains(ExportCategory.workouts)
+                ? _workoutsCsv(w)
+                : _rawCsv(r),
+        ExportFormat.json => _json(s, w, r, categories),
+        ExportFormat.markdown => _markdown(s, w, r, categories),
+        ExportFormat.zip => '',
+      };
+
+  String _fileStem(String periodLabel, Set<ExportCategory> categories) {
+    final cats = categories.map((c) => c.slug).join('_');
+    final period =
+        periodLabel.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+    return 'open_fit_data_${period}_${cats}_${_stamp.format(DateTime.now())}';
   }
 
   String _summariesCsv(List<DailySummary> s) {
@@ -76,6 +162,7 @@ class ExportService {
         'avg_hr',
         'weight_kg',
         'vo2max',
+        'hrv_ms',
       ],
       ...s.map((d) => [
             d.date,
@@ -87,6 +174,7 @@ class ExportService {
             d.avgHr,
             d.weightKg,
             d.vo2max,
+            d.hrvMs,
           ]),
     ];
     return const ListToCsvConverter().convert(rows);
@@ -122,11 +210,17 @@ class ExportService {
     return const ListToCsvConverter().convert(rows);
   }
 
-  String _json(List<DailySummary> s, List<Workout> w) {
+  String _json(
+    List<DailySummary> s,
+    List<Workout> w,
+    List<HealthRawRecord> r,
+    Set<ExportCategory> categories,
+  ) {
     final data = {
       'app': 'Open Fit Data',
       'exported_at': DateTime.now().toIso8601String(),
-      'daily_summaries': s
+      if (categories.contains(ExportCategory.dailyMetrics))
+        'daily_summaries': s
           .map((d) => {
                 'date': d.date,
                 'steps': d.steps,
@@ -137,9 +231,11 @@ class ExportService {
                 'avg_hr': d.avgHr,
                 'weight_kg': d.weightKg,
                 'vo2max': d.vo2max,
+                'hrv_ms': d.hrvMs,
               })
           .toList(),
-      'workouts': w
+      if (categories.contains(ExportCategory.workouts))
+        'workouts': w
           .map((x) => {
                 'type': x.workoutType,
                 'start': x.startTime.toIso8601String(),
@@ -153,45 +249,111 @@ class ExportService {
                 'source': x.sourceApp,
               })
           .toList(),
+      if (categories.contains(ExportCategory.rawRecords))
+        'raw_records': r
+            .map((x) => {
+                  'type': x.type,
+                  'start': x.startTime.toIso8601String(),
+                  'end': x.endTime.toIso8601String(),
+                  'value': x.value,
+                  'unit': x.unit,
+                  'source_platform': x.sourcePlatform,
+                  'source_app': x.sourceApp,
+                })
+            .toList(),
     };
     return const JsonEncoder.withIndent('  ').convert(data);
   }
 
-  String _markdown(List<DailySummary> s, List<Workout> w) {
+  String _markdown(
+    List<DailySummary> s,
+    List<Workout> w,
+    List<HealthRawRecord> r,
+    Set<ExportCategory> categories,
+  ) {
     final b = StringBuffer()
       ..writeln('# Open Fit Data — export')
       ..writeln()
       ..writeln('Generato: ${DateTime.now().toIso8601String()}')
-      ..writeln()
-      ..writeln('## Riepiloghi giornalieri (${s.length})')
-      ..writeln()
-      ..writeln('| Data | Passi | Distanza (m) | Sonno (min) | Peso (kg) |')
-      ..writeln('|---|---|---|---|---|');
-    for (final d in s) {
-      b.writeln(
-        '| ${d.date} | ${d.steps ?? '-'} | ${d.distanceM?.round() ?? '-'} '
-        '| ${d.sleepMinutes ?? '-'} | ${d.weightKg ?? '-'} |',
-      );
-    }
-    b
-      ..writeln()
-      ..writeln('## Allenamenti (${w.length})')
       ..writeln();
-    for (final x in w) {
-      b.writeln(
-        '- ${x.workoutType} · ${x.distanceM?.round() ?? '-'} m · '
-        '${x.durationSec ?? '-'} s',
-      );
+    if (categories.contains(ExportCategory.dailyMetrics)) {
+      b
+        ..writeln('## Riepiloghi giornalieri (${s.length})')
+        ..writeln()
+        ..writeln('| Data | Passi | Distanza (m) | Sonno (min) | Peso (kg) | HRV (ms) |')
+        ..writeln('|---|---|---|---|---|---|');
+      for (final d in s) {
+        b.writeln(
+          '| ${d.date} | ${d.steps ?? '-'} | ${d.distanceM?.round() ?? '-'} '
+          '| ${d.sleepMinutes ?? '-'} | ${d.weightKg ?? '-'} | ${d.hrvMs ?? '-'} |',
+        );
+      }
+    }
+    if (categories.contains(ExportCategory.workouts)) {
+      b
+        ..writeln()
+        ..writeln('## Allenamenti (${w.length})')
+        ..writeln();
+      for (final x in w) {
+        b.writeln(
+          '- ${x.workoutType} · ${x.distanceM?.round() ?? '-'} m · '
+          '${x.durationSec ?? '-'} s',
+        );
+      }
+    }
+    if (categories.contains(ExportCategory.rawRecords)) {
+      b
+        ..writeln()
+        ..writeln('## Dati grezzi (${r.length})')
+        ..writeln()
+        ..writeln('Record normalizzati importati da Health Connect/Takeout.');
     }
     return b.toString();
   }
 
-  List<int> _zip(List<DailySummary> s, List<Workout> w) {
-    final archive = Archive()
-      ..addFile(_entry('daily_summaries.csv', _summariesCsv(s)))
-      ..addFile(_entry('workouts.csv', _workoutsCsv(w)))
-      ..addFile(_entry('data.json', _json(s, w)))
-      ..addFile(_entry('report.md', _markdown(s, w)));
+  String _rawCsv(List<HealthRawRecord> r) {
+    final rows = <List<dynamic>>[
+      [
+        'type',
+        'start',
+        'end',
+        'value',
+        'unit',
+        'source_platform',
+        'source_app',
+      ],
+      ...r.map((x) => [
+            x.type,
+            x.startTime.toIso8601String(),
+            x.endTime.toIso8601String(),
+            x.value,
+            x.unit,
+            x.sourcePlatform,
+            x.sourceApp,
+          ]),
+    ];
+    return const ListToCsvConverter().convert(rows);
+  }
+
+  List<int> _zip(
+    List<DailySummary> s,
+    List<Workout> w,
+    List<HealthRawRecord> r,
+    Set<ExportCategory> categories,
+  ) {
+    final archive = Archive();
+    if (categories.contains(ExportCategory.dailyMetrics)) {
+      archive.addFile(_entry('daily_summaries.csv', _summariesCsv(s)));
+    }
+    if (categories.contains(ExportCategory.workouts)) {
+      archive.addFile(_entry('workouts.csv', _workoutsCsv(w)));
+    }
+    if (categories.contains(ExportCategory.rawRecords)) {
+      archive.addFile(_entry('raw_records.csv', _rawCsv(r)));
+    }
+    archive
+      ..addFile(_entry('data.json', _json(s, w, r, categories)))
+      ..addFile(_entry('report.md', _markdown(s, w, r, categories)));
     return ZipEncoder().encode(archive) ?? <int>[];
   }
 

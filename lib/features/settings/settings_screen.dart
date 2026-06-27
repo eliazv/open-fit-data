@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
@@ -42,6 +43,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _importTakeout() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final picked = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Importa Google Takeout',
+      allowMultiple: false,
+      type: FileType.custom,
+      allowedExtensions: ['zip', 'json', 'csv', 'tcx', 'fit'],
+    );
+    final path = picked?.files.single.path;
+    if (path == null) return;
+
+    setState(() => _loading = true);
+    try {
+      final result = await ref.read(takeoutImportServiceProvider).importPath(path);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Import completato: ${result.insertedTotal} nuovi elementi '
+            '(${result.warnings.length} avvisi).',
+          ),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Import fallito: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -59,6 +89,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   value: _autoSync,
                   onChanged: _toggleAutoSync,
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.upload_file_outlined),
+                  title: const Text('Importa Google Takeout'),
+                  subtitle: const Text(
+                    'ZIP/JSON/CSV/TCX: recupera storico pre-Health Connect '
+                    'e lo normalizza nell’archivio locale.',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _importTakeout,
                 ),
                 const Divider(),
                 const ListTile(

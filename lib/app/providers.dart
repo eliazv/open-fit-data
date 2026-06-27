@@ -7,6 +7,7 @@ import '../services/background_sync.dart';
 import '../services/export_service.dart';
 import '../services/health_sync_service.dart';
 import '../services/sync_service.dart';
+import '../services/takeout_import_service.dart';
 
 /// Database locale (chiuso quando il provider viene smaltito).
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
@@ -40,4 +41,9 @@ final exportServiceProvider = Provider<ExportService>((ref) {
 
 final backgroundSyncManagerProvider = Provider<BackgroundSyncManager>((ref) {
   return const BackgroundSyncManager();
+});
+
+
+final takeoutImportServiceProvider = Provider<TakeoutImportService>((ref) {
+  return TakeoutImportService(ref.watch(archiveRepositoryProvider));
 });
