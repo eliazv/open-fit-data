@@ -11,7 +11,7 @@
     <!-- ExerciseSessionRecord aggrega anche TotalCaloriesBurnedRecord). -->
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
     <application
-        android:label="open_fit_data"
+        android:label="OpenFitData"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">

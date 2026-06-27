@@ -1,6 +1,6 @@
 /// Costanti globali dell'app.
 class AppConstants {
-  static const String appName = 'Open Fit Data';
+  static const String appName = 'OpenFitData';
   static const String dbFileName = 'open_fit_data.sqlite';
 
   /// Health Connect conserva di default ~30 giorni di storico:
