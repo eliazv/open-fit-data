@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
 import '../../core/constants.dart';
+import '../../widgets/format.dart';
+import '../../widgets/source_pie_chart.dart';
+import '../home/home_controller.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -56,7 +59,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     setState(() => _loading = true);
     try {
-      final result = await ref.read(takeoutImportServiceProvider).importPath(path);
+      final result =
+          await ref.read(takeoutImportServiceProvider).importPath(path);
       messenger.showSnackBar(
         SnackBar(
           content: Text(
@@ -75,6 +79,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final home = ref.watch(homeControllerProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Impostazioni')),
       body: _loading
@@ -101,6 +106,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _importTakeout,
                 ),
+                if ((home.valueOrNull?.sourceDistribution ?? {}).isNotEmpty)
+                  ListTile(
+                    leading: const Icon(Icons.storage_outlined),
+                    title: const Text('Sorgenti dati'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _showSourcesSheet(
+                      home.valueOrNull!.sourceDistribution,
+                    ),
+                  ),
                 const Divider(),
                 const ListTile(
                   leading: Icon(Icons.privacy_tip_outlined),
@@ -137,6 +151,77 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  Future<void> _showSourcesSheet(Map<String, int> values) {
+    return showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (_) => _SourcesSheet(values: values),
+    );
+  }
+}
+
+class _SourcesSheet extends StatelessWidget {
+  const _SourcesSheet({required this.values});
+
+  final Map<String, int> values;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final entries = values.entries.where((e) => e.value > 0).toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final total = entries.fold<int>(0, (sum, e) => sum + e.value);
+
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.68,
+      minChildSize: 0.38,
+      maxChildSize: 0.94,
+      builder: (context, controller) => ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+        children: [
+          Text('Sorgenti dati', style: theme.textTheme.titleLarge),
+          const SizedBox(height: 4),
+          Text(
+            '${entries.length} sorgenti - ${Format.intDot(total)} record',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SourcePieChart(values: values, height: 220, legendBelow: true),
+          const SizedBox(height: 20),
+          Card(
+            child: Column(
+              children: [
+                for (var i = 0; i < entries.length; i++)
+                  ListTile(
+                    leading: const Icon(Icons.storage_outlined),
+                    title:
+                        Text(entries[i].key, overflow: TextOverflow.ellipsis),
+                    subtitle: Text(
+                      total == 0
+                          ? '0% del totale'
+                          : '${(entries[i].value / total * 100).round()}% del totale',
+                    ),
+                    trailing: Text(
+                      Format.intDot(entries[i].value),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

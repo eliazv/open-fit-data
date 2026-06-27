@@ -21,8 +21,7 @@ class _Stats {
       avgSteps = (totalSteps / steps.length).round();
     }
     final dist = s.where((x) => x.distanceM != null);
-    totalDistanceKm =
-        dist.fold(0.0, (a, b) => a + (b.distanceM ?? 0)) / 1000;
+    totalDistanceKm = dist.fold(0.0, (a, b) => a + (b.distanceM ?? 0)) / 1000;
     final sleep = s.where((x) => x.sleepMinutes != null).toList();
     if (sleep.isNotEmpty) {
       avgSleepMin =
@@ -66,20 +65,41 @@ class AiBriefingService {
     return '$body${_noteSection(userNote)}\n$_disclaimer\n';
   }
 
+  String buildForPeriod({
+    required List<DailySummary> primary,
+    required String periodLabel,
+    String? userNote,
+    String? profile,
+  }) {
+    final body = _periodWithLabel(primary, periodLabel);
+    return '$body${_profileSection(profile)}${_noteSection(userNote)}\n$_disclaimer\n';
+  }
+
+  String _profileSection(String? profile) {
+    if (profile == null || profile.trim().isEmpty) return '';
+    return '\n## Profilo\n$profile\n';
+  }
+
   String _noteSection(String? note) {
     if (note == null || note.trim().isEmpty) return '';
     return '\n## Note manuali\n$note\n';
   }
 
   String _period(List<DailySummary> s, int days) {
+    return _periodWithLabel(s, 'ultimi $days giorni');
+  }
+
+  String _periodWithLabel(List<DailySummary> s, String periodLabel) {
     final st = _Stats(s);
     final b = StringBuffer()
-      ..writeln('# Briefing fitness — ultimi $days giorni')
+      ..writeln('# Briefing fitness - $periodLabel')
       ..writeln()
       ..writeln('## Dati')
       ..writeln('- Giorni con dati passi: ${st.daysWithSteps}')
       ..writeln('- Passi medi: ${_fmt(st.avgSteps)}/giorno')
-      ..writeln('- Distanza totale: ${st.totalDistanceKm.toStringAsFixed(1)} km')
+      ..writeln(
+        '- Distanza totale: ${st.totalDistanceKm.toStringAsFixed(1)} km',
+      )
       ..writeln('- Sonno medio: ${_sleep(st.avgSleepMin)}')
       ..writeln('- Battito medio: ${_fmt(st.avgHr)} bpm')
       ..writeln('- Peso: ${st.lastWeight?.toStringAsFixed(1) ?? '—'} kg')

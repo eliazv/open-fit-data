@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+<html lang="it"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fitness Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Hide scrollbar for clean horizontal scrolling */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error-container": "#ffdad6",
+                      "on-surface-variant": "#454652",
+                      "surface-bright": "#f9f9fc",
+                      "surface-tint": "#4355b9",
+                      "on-primary-fixed-variant": "#293ca0",
+                      "on-tertiary-container": "#f8c8b7",
+                      "tertiary-fixed": "#ffdbcf",
+                      "surface-dim": "#dadadc",
+                      "outline": "#757684",
+                      "secondary": "#006a60",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-low": "#f3f3f6",
+                      "outline-variant": "#c5c5d4",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary-fixed": "#2e150b",
+                      "error": "#ba1a1a",
+                      "surface-container": "#eeeef0",
+                      "secondary-fixed": "#85f6e5",
+                      "on-primary-fixed": "#00105c",
+                      "primary-fixed": "#dee0ff",
+                      "tertiary-container": "#765245",
+                      "primary": "#24389c",
+                      "tertiary": "#5c3b2f",
+                      "surface-container-highest": "#e2e2e5",
+                      "on-surface": "#1a1c1e",
+                      "surface-variant": "#e2e2e5",
+                      "secondary-container": "#85f6e5",
+                      "on-secondary-container": "#007166",
+                      "inverse-primary": "#bac3ff",
+                      "inverse-on-surface": "#f0f0f3",
+                      "primary-fixed-dim": "#bac3ff",
+                      "on-secondary-fixed": "#00201c",
+                      "on-primary-container": "#cacfff",
+                      "secondary-fixed-dim": "#67d9c9",
+                      "on-background": "#1a1c1e",
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#f9f9fc",
+                      "tertiary-fixed-dim": "#ebbcac",
+                      "on-primary": "#ffffff",
+                      "primary-container": "#3f51b5",
+                      "inverse-surface": "#2f3133",
+                      "surface-container-high": "#e8e8ea",
+                      "on-error-container": "#93000a",
+                      "on-secondary-fixed-variant": "#005048",
+                      "background": "#f9f9fc",
+                      "on-tertiary-fixed-variant": "#603f33",
+                      "on-error": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px",
+                      "2xl": "1.5rem"
+              },
+              "spacing": {
+                      "container-padding": "20px",
+                      "sm": "8px",
+                      "xl": "32px",
+                      "md": "16px",
+                      "xs": "4px",
+                      "gutter": "16px",
+                      "base": "4px",
+                      "lg": "24px",
+                      "safe": "20px"
+              },
+              "fontFamily": {
+                      "title-lg": ["Hanken Grotesk"],
+                      "headline-lg-mobile": ["Hanken Grotesk"],
+                      "headline-sm": ["Hanken Grotesk"],
+                      "headline-lg": ["Hanken Grotesk"],
+                      "body-lg": ["Hanken Grotesk"],
+                      "label-lg": ["Hanken Grotesk"],
+                      "title-md": ["Hanken Grotesk"],
+                      "display-lg": ["Hanken Grotesk"],
+                      "body-md": ["Hanken Grotesk"],
+                      "label-sm": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "title-lg": ["22px", {"lineHeight": "28px", "fontWeight": "500"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                      "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                      "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                      "title-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "600"}],
+                      "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "400"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                      "label-sm": ["11px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}]
+              }
+            }
+          }
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col antialiased">
+<!-- TopAppBar -->
+<header class="sticky top-0 w-full z-40 bg-surface dark:bg-on-background shadow-sm flex items-center justify-between px-container-padding py-md w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-sm">
+<h1 class="font-headline-sm text-headline-sm text-primary font-bold tracking-tight">Fitness Dashboard</h1>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[24px]" data-icon="notifications">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant hover:bg-surface-container-low transition-colors active:scale-95 transition-transform cursor-pointer">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A clean, professional headshot of a young athletic adult smiling subtly. The lighting is bright and even, set against a soft, light background that perfectly matches a crisp, modern minimalist UI aesthetic. The mood is approachable, healthy, and focused." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbVbfHeF74VUol0fqR9UVfIFhosk3pSCKDDdz_3vYM0DBoPvBVq8_DnLHpARihomExT4rRUoWak94h1Ov3I8nd0NFVucyoCv8RgqZMjtdqNlGeDhx2zark8CJ9EDQAJdrC3LI499EwouNVChKi2cL8pQTGUnW9nAjupk66Fd9EVxY9dBRLFvxHa1ljsA2iH1vaBkfg1fvaSoi-mytFV6BeqQBrYOwReWEVwaosFZSTxUKUrg-J_rZsC0tfFTvY-8PDBOSKlkywuUM"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 w-full max-w-7xl mx-auto px-container-padding pt-md pb-[100px] flex flex-col gap-lg md:gap-xl">
+<!-- Hero Section: Steps Chart -->
+<section class="bg-surface-container-lowest rounded-2xl p-container-padding shadow-[0_4px_12px_0px_rgba(26,28,30,0.04)]">
+<div class="flex justify-between items-start mb-md">
+<div>
+<h2 class="font-title-md text-title-md text-on-surface-variant mb-xs">Passi Odierni</h2>
+<div class="flex items-baseline gap-xs">
+<span class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">8.432</span>
+<span class="font-body-md text-body-md text-outline">/ 10.000</span>
+</div>
+</div>
+<div class="bg-secondary-container text-on-secondary-container p-sm rounded-full">
+<span class="material-symbols-outlined" data-icon="directions_walk">directions_walk</span>
+</div>
+</div>
+<!-- Fake Bar Chart -->
+<div class="mt-lg">
+<h3 class="font-label-lg text-label-lg text-on-surface-variant mb-md">Passi Settimanali</h3>
+<div class="flex items-end justify-between h-32 gap-xs">
+<!-- Day 1 -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-primary-fixed rounded-t-lg relative group h-[60%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface font-label-sm text-label-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">6.2k</div>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Lun</span>
+</div>
+<!-- Day 2 -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-primary-fixed rounded-t-lg relative group h-[75%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface font-label-sm text-label-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">7.5k</div>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Mar</span>
+</div>
+<!-- Day 3 -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-primary-fixed rounded-t-lg relative group h-[40%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface font-label-sm text-label-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">4.1k</div>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Mer</span>
+</div>
+<!-- Day 4 -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-primary-fixed rounded-t-lg relative group h-[90%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface font-label-sm text-label-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">9.0k</div>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Gio</span>
+</div>
+<!-- Day 5 -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-primary rounded-t-lg relative group h-[85%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface font-label-sm text-label-sm px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">8.4k</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface font-bold">Ven</span>
+</div>
+<!-- Day 6 -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-surface-variant rounded-t-lg h-[10%]"></div>
+<span class="font-label-sm text-label-sm text-outline">Sab</span>
+</div>
+<!-- Day 7 -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-full bg-surface-variant rounded-t-lg h-[10%]"></div>
+<span class="font-label-sm text-label-sm text-outline">Dom</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 2x2 Grid of Stats -->
+<section class="grid grid-cols-2 gap-gutter">
+<!-- Calorie -->
+<div class="bg-surface-container-lowest rounded-2xl p-md shadow-[0_4px_12px_0px_rgba(26,28,30,0.04)] flex flex-col gap-sm">
+<div class="flex items-center gap-sm text-error">
+<span class="material-symbols-outlined" data-icon="local_fire_department">local_fire_department</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">Calorie</span>
+</div>
+<div>
+<div class="font-title-lg text-title-lg text-on-surface">1.240</div>
+<div class="font-body-md text-body-md text-outline">kcal bruciate</div>
+</div>
+</div>
+<!-- Allenamenti -->
+<div class="bg-surface-container-lowest rounded-2xl p-md shadow-[0_4px_12px_0px_rgba(26,28,30,0.04)] flex flex-col gap-sm">
+<div class="flex items-center gap-sm text-primary">
+<span class="material-symbols-outlined" data-icon="fitness_center">fitness_center</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">Allenamenti</span>
+</div>
+<div>
+<div class="font-title-lg text-title-lg text-on-surface">4</div>
+<div class="font-body-md text-body-md text-outline">questa sett.</div>
+</div>
+</div>
+<!-- Distanza -->
+<div class="bg-surface-container-lowest rounded-2xl p-md shadow-[0_4px_12px_0px_rgba(26,28,30,0.04)] flex flex-col gap-sm">
+<div class="flex items-center gap-sm text-secondary">
+<span class="material-symbols-outlined" data-icon="route">route</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">Distanza</span>
+</div>
+<div>
+<div class="font-title-lg text-title-lg text-on-surface">12,5</div>
+<div class="font-body-md text-body-md text-outline">km percorsi</div>
+</div>
+</div>
+<!-- Minuti Attivi -->
+<div class="bg-surface-container-lowest rounded-2xl p-md shadow-[0_4px_12px_0px_rgba(26,28,30,0.04)] flex flex-col gap-sm">
+<div class="flex items-center gap-sm text-tertiary">
+<span class="material-symbols-outlined" data-icon="timer">timer</span>
+<span class="font-label-lg text-label-lg text-on-surface-variant">Minuti Attivi</span>
+</div>
+<div>
+<div class="font-title-lg text-title-lg text-on-surface">180</div>
+<div class="font-body-md text-body-md text-outline">min. totali</div>
+</div>
+</div>
+</section>
+<!-- Dati Personali -->
+<section>
+<h2 class="font-title-md text-title-md text-on-surface mb-md">Dati Personali</h2>
+<div class="flex gap-sm overflow-x-auto hide-scrollbar pb-xs">
+<!-- Peso -->
+<div class="bg-surface-container-low rounded-full px-md py-sm flex items-center gap-sm border border-surface-variant whitespace-nowrap flex-shrink-0">
+<span class="material-symbols-outlined text-outline" data-icon="monitor_weight">monitor_weight</span>
+<div>
+<span class="font-label-sm text-label-sm text-outline block">Peso</span>
+<span class="font-label-lg text-label-lg text-on-surface">74 kg</span>
+</div>
+</div>
+<!-- Altezza -->
+<div class="bg-surface-container-low rounded-full px-md py-sm flex items-center gap-sm border border-surface-variant whitespace-nowrap flex-shrink-0">
+<span class="material-symbols-outlined text-outline" data-icon="height">height</span>
+<div>
+<span class="font-label-sm text-label-sm text-outline block">Altezza</span>
+<span class="font-label-lg text-label-lg text-on-surface">178 cm</span>
+</div>
+</div>
+<!-- Età -->
+<div class="bg-surface-container-low rounded-full px-md py-sm flex items-center gap-sm border border-surface-variant whitespace-nowrap flex-shrink-0">
+<span class="material-symbols-outlined text-outline" data-icon="cake">cake</span>
+<div>
+<span class="font-label-sm text-label-sm text-outline block">Età</span>
+<span class="font-label-lg text-label-lg text-on-surface">29 anni</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Impostazioni -->
+<section>
+<div class="bg-surface-container-lowest rounded-2xl p-md shadow-[0_4px_12px_0px_rgba(26,28,30,0.04)] flex items-center justify-between cursor-pointer hover:bg-surface-container-low transition-colors active:scale-[0.98] transition-transform">
+<div class="flex items-center gap-md">
+<div class="bg-surface-variant p-sm rounded-full text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</div>
+<div>
+<div class="font-title-md text-title-md text-on-surface">Impostazioni</div>
+<div class="font-body-md text-body-md text-outline">Gestisci obiettivi e preferenze</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline" data-icon="chevron_right">chevron_right</span>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-surface dark:bg-on-background shadow-[0_-4px_12px_0px_rgba(26,28,30,0.04)] md:hidden">
+<div class="flex justify-around items-center w-full h-16 px-container-padding pb-safe">
+<!-- Home (Active) -->
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 hover:bg-surface-container-highest transition-colors active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="home" data-weight="fill">home</span>
+<span class="font-label-sm text-label-sm mt-1">Home</span>
+</button>
+<!-- Statistiche (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors active:scale-90 transition-transform px-4 py-1 rounded-full">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-label-sm text-label-sm mt-1">Stats</span>
+</button>
+<!-- Piano (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors active:scale-90 transition-transform px-4 py-1 rounded-full">
+<span class="material-symbols-outlined" data-icon="event_note">event_note</span>
+<span class="font-label-sm text-label-sm mt-1">Plan</span>
+</button>
+<!-- Profilo (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors active:scale-90 transition-transform px-4 py-1 rounded-full">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</button>
+</div>
+</nav>
+</body></html>

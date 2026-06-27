@@ -6,7 +6,7 @@ import '../../core/period.dart';
 import '../../data/db/database.dart';
 
 /// Periodo selezionato nella schermata Archivio.
-final archivePeriodProvider = StateProvider<Period>((_) => Period.d30);
+final archivePeriodProvider = StateProvider<Period>((_) => Period.d7);
 
 /// Riepiloghi giornalieri per il periodo selezionato.
 final archiveSummariesProvider =

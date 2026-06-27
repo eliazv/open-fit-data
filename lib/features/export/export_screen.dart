@@ -7,15 +7,70 @@ import '../../core/period.dart';
 import '../../services/export_service.dart';
 import '../../widgets/period_selector.dart';
 
+class ExportPreviewQuery {
+  ExportPreviewQuery({
+    required this.period,
+    required Set<ExportCategory> categories,
+  }) : categories =
+            (categories.toList()..sort((a, b) => a.index.compareTo(b.index)));
+
+  final Period period;
+  final List<ExportCategory> categories;
+
+  Set<ExportCategory> get categorySet => categories.toSet();
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! ExportPreviewQuery) return false;
+    if (period != other.period ||
+        categories.length != other.categories.length) {
+      return false;
+    }
+    for (var i = 0; i < categories.length; i++) {
+      if (categories[i] != other.categories[i]) return false;
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hash(period, Object.hashAll(categories));
+}
+
+final exportPreviewProvider =
+    FutureProvider.family<ExportPreview, ExportPreviewQuery>(
+        (ref, query) async {
+  final repo = ref.read(archiveRepositoryProvider);
+  final now = DateTime.now();
+  final from = query.period.days == null
+      ? DateTime(2000)
+      : now.subtract(Duration(days: query.period.days! - 1));
+  final summaries = query.period.days == null
+      ? await repo.allSummaries()
+      : await repo.summariesInRange(
+          ExportScreenState.dayFormat.format(from),
+          ExportScreenState.dayFormat.format(now),
+        );
+  final workouts = await repo.workoutsInRange(from, now);
+  final rawRecords = await repo.rawInRange(from, now);
+  return ref.read(exportServiceProvider).preview(
+        format: ExportFormat.zip,
+        summaries: summaries,
+        workouts: workouts,
+        rawRecords: rawRecords,
+        categories: query.categorySet,
+        periodLabel: query.period.label,
+      );
+});
+
 class ExportScreen extends ConsumerStatefulWidget {
   const ExportScreen({super.key});
 
   @override
-  ConsumerState<ExportScreen> createState() => _ExportScreenState();
+  ConsumerState<ExportScreen> createState() => ExportScreenState();
 }
 
-class _ExportScreenState extends ConsumerState<ExportScreen> {
-  static final DateFormat _fmt = DateFormat('yyyy-MM-dd');
+class ExportScreenState extends ConsumerState<ExportScreen> {
+  static final DateFormat dayFormat = DateFormat('yyyy-MM-dd');
   Period _period = Period.d30;
   bool _busy = false;
   Set<ExportCategory> _categories = {...ExportCategory.values};
@@ -31,7 +86,10 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
 
       final summaries = _period.days == null
           ? await repo.allSummaries()
-          : await repo.summariesInRange(_fmt.format(from), _fmt.format(now));
+          : await repo.summariesInRange(
+              dayFormat.format(from),
+              dayFormat.format(now),
+            );
       final workouts = await repo.workoutsInRange(from, now);
       final rawRecords = await repo.rawInRange(from, now);
 
@@ -66,14 +124,11 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Condividi export ${format.label}',
+              'Condividi ${format.label}',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
-            Text(
-              'Periodo: ${_period.label} · Categorie: '
-              '${_categories.map((c) => c.label).join(', ')}',
-            ),
+            Text('${_period.label} - ${_categories.length} contenuti'),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -105,71 +160,78 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text('Periodo', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: PeriodSelector(
-            selected: _period,
-            onChanged: (p) => setState(() => _period = p),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text('Categorie', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
-        ...ExportCategory.values.map(
-          (c) => CheckboxListTile(
-            value: _categories.contains(c),
-            secondary: Icon(_categoryIconFor(c)),
-            title: Text(c.label),
-            subtitle: Text(_categoryDescFor(c)),
-            onChanged: _busy
-                ? null
-                : (selected) => setState(() {
-                      final next = {..._categories};
-                      if (selected ?? false) {
-                        next.add(c);
-                      } else if (next.length > 1) {
-                        next.remove(c);
-                      }
-                      _categories = next;
-                    }),
-          ),
-        ),
-        const SizedBox(height: 16),
-        _ExportPreviewCard(period: _period, categories: _categories),
-        const SizedBox(height: 24),
-        Text('Formato', style: theme.textTheme.titleMedium),
-        const SizedBox(height: 8),
-        if (_busy)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
-            child: Center(child: CircularProgressIndicator()),
-          )
-        else
-          ...ExportFormat.values.map(
-            (f) => Card(
-              child: ListTile(
-                leading: Icon(_iconFor(f)),
-                title: Text(f.label),
-                subtitle: Text(_descFor(f)),
-                trailing: const Icon(Icons.ios_share),
-                onTap: () => _showExportSheet(f),
-              ),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Export')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text('Periodo', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: PeriodSelector(
+              selected: _period,
+              onChanged: (p) => setState(() => _period = p),
             ),
           ),
-        const SizedBox(height: 16),
-        Text(
-          'I file vengono generati in locale e aperti nel menu di '
-          'condivisione: nessun upload automatico.',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+          const SizedBox(height: 24),
+          Text('Contenuto', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Card(
+            child: Column(
+              children: [
+                for (final c in ExportCategory.values)
+                  CheckboxListTile(
+                    value: _categories.contains(c),
+                    secondary: Icon(_categoryIconFor(c)),
+                    title: Text(c.label),
+                    onChanged: _busy
+                        ? null
+                        : (selected) => setState(() {
+                              final next = {..._categories};
+                              if (selected ?? false) {
+                                next.add(c);
+                              } else if (next.length > 1) {
+                                next.remove(c);
+                              }
+                              _categories = next;
+                            }),
+                  ),
+              ],
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+          _ExportPreviewCard(period: _period, categories: _categories),
+          const SizedBox(height: 24),
+          Text('Formato', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          if (_busy)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final f in ExportFormat.values)
+                  ActionChip(
+                    avatar: Icon(_iconFor(f), size: 18),
+                    label: Text(f.label),
+                    onPressed: () => _showExportSheet(f),
+                  ),
+              ],
+            ),
+          const SizedBox(height: 16),
+          Text(
+            'Generazione locale. Nessun upload automatico.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -179,32 +241,16 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
         ExportCategory.rawRecords => Icons.storage,
       };
 
-  String _categoryDescFor(ExportCategory c) => switch (c) {
-        ExportCategory.dailyMetrics => 'Passi, distanza, sonno, peso, battito e VO2max',
-        ExportCategory.workouts => 'Sessioni, durata, distanza, ritmo, frequenza e sorgente',
-        ExportCategory.rawRecords => 'Record normalizzati e granulari per backup avanzato',
-      };
-
   IconData _iconFor(ExportFormat f) => switch (f) {
         ExportFormat.csv => Icons.table_chart_outlined,
         ExportFormat.json => Icons.data_object,
         ExportFormat.markdown => Icons.description_outlined,
         ExportFormat.zip => Icons.folder_zip_outlined,
       };
-
-  String _descFor(ExportFormat f) => switch (f) {
-        ExportFormat.csv => 'Riepiloghi giornalieri in tabella',
-        ExportFormat.json => 'Dati completi strutturati',
-        ExportFormat.markdown => 'Report leggibile',
-        ExportFormat.zip => 'CSV + JSON + Markdown insieme',
-      };
 }
-
 
 class _ExportPreviewCard extends ConsumerWidget {
   const _ExportPreviewCard({required this.period, required this.categories});
-
-  static final DateFormat _fmt = DateFormat('yyyy-MM-dd');
 
   final Period period;
   final Set<ExportCategory> categories;
@@ -212,67 +258,40 @@ class _ExportPreviewCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    return FutureBuilder<ExportPreview>(
-      future: _loadPreview(ref),
-      builder: (context, snapshot) {
-        final preview = snapshot.data;
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+    final query = ExportPreviewQuery(period: period, categories: categories);
+    final asyncPreview = ref.watch(exportPreviewProvider(query));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(Icons.preview, color: theme.colorScheme.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: asyncPreview.when(
+                loading: () => const LinearProgressIndicator(),
+                error: (e, _) => Text('Anteprima non disponibile: $e'),
+                data: (preview) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.preview, color: theme.colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text('Anteprima export',
-                        style: theme.textTheme.titleSmall),
+                    Text('Anteprima export', style: theme.textTheme.titleSmall),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${preview.rows} righe - '
+                      '${_formatBytes(preview.estimatedBytes)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                if (snapshot.connectionState == ConnectionState.waiting)
-                  const LinearProgressIndicator()
-                else if (snapshot.hasError)
-                  Text('Anteprima non disponibile: ${snapshot.error}')
-                else ...[
-                  Text('${preview?.rows ?? 0} righe stimate · '
-                      '${_formatBytes(preview?.estimatedBytes ?? 0)}'),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${preview?.fileStem ?? 'open_fit_data'}.<formato>',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
-  }
-
-  Future<ExportPreview> _loadPreview(WidgetRef ref) async {
-    final repo = ref.read(archiveRepositoryProvider);
-    final now = DateTime.now();
-    final from = period.days == null
-        ? DateTime(2000)
-        : now.subtract(Duration(days: period.days! - 1));
-    final summaries = period.days == null
-        ? await repo.allSummaries()
-        : await repo.summariesInRange(_fmt.format(from), _fmt.format(now));
-    final workouts = await repo.workoutsInRange(from, now);
-    final rawRecords = await repo.rawInRange(from, now);
-    return ref.read(exportServiceProvider).preview(
-          format: ExportFormat.zip,
-          summaries: summaries,
-          workouts: workouts,
-          rawRecords: rawRecords,
-          categories: categories,
-          periodLabel: period.label,
-        );
   }
 
   String _formatBytes(int bytes) {

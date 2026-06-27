@@ -38,24 +38,34 @@ class _AiBriefingScreenState extends ConsumerState<AiBriefingScreen> {
     switch (kind) {
       case BriefingKind.last7:
         text = service.build(
-            kind: kind, primary: await _cast(range(7)), userNote: noteText);
+          kind: kind,
+          primary: await _cast(range(7)),
+          userNote: noteText,
+        );
       case BriefingKind.last30:
       case BriefingKind.runningPlan:
         text = service.build(
-            kind: kind, primary: await _cast(range(30)), userNote: noteText);
+          kind: kind,
+          primary: await _cast(range(30)),
+          userNote: noteText,
+        );
       case BriefingKind.compareMonths:
         final startCurrent = DateTime(now.year, now.month, 1);
         final startPrev = DateTime(now.year, now.month - 1, 1);
         final current = await repo.summariesInRange(
-            _fmt.format(startCurrent), _fmt.format(now));
+          _fmt.format(startCurrent),
+          _fmt.format(now),
+        );
         final previous = await repo.summariesInRange(
-            _fmt.format(startPrev),
-            _fmt.format(startCurrent.subtract(const Duration(days: 1))));
+          _fmt.format(startPrev),
+          _fmt.format(startCurrent.subtract(const Duration(days: 1))),
+        );
         text = service.build(
-            kind: kind,
-            primary: current,
-            previous: previous,
-            userNote: noteText);
+          kind: kind,
+          primary: current,
+          previous: previous,
+          userNote: noteText,
+        );
     }
 
     setState(() {
@@ -79,35 +89,40 @@ class _AiBriefingScreenState extends ConsumerState<AiBriefingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text('Genera un briefing pronto da incollare nella tua AI.',
+    return Scaffold(
+      appBar: AppBar(title: const Text('Briefing AI')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(
+            'Genera un testo pronto da copiare nella tua AI.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
-            )),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final kind in BriefingKind.values)
-              ActionChip(
-                avatar: const Icon(Icons.auto_awesome, size: 18),
-                label: Text(kind.label),
-                onPressed: _busy ? null : () => _generate(kind),
-              ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        if (_busy)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
-            child: Center(child: CircularProgressIndicator()),
-          )
-        else if (_text != null)
-          _Preview(text: _text!),
-      ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final kind in BriefingKind.values)
+                ActionChip(
+                  avatar: const Icon(Icons.auto_awesome, size: 18),
+                  label: Text(kind.label),
+                  onPressed: _busy ? null : () => _generate(kind),
+                ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          if (_busy)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_text != null)
+            _Preview(text: _text!),
+        ],
+      ),
     );
   }
 }
@@ -154,7 +169,9 @@ class _Preview extends StatelessWidget {
                   child: FilledButton.icon(
                     icon: const Icon(Icons.share),
                     label: const Text('Condividi'),
-                    onPressed: () => Share.share(text),
+                    onPressed: () => SharePlus.instance.share(
+                      ShareParams(text: text),
+                    ),
                   ),
                 ),
               ],

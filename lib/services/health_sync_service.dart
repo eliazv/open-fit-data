@@ -43,6 +43,7 @@ class HealthSyncService {
   List<HealthDataType> get _allTypes => [
         ..._numericTypes.values,
         HealthDataType.WORKOUT,
+        HealthDataType.WORKOUT_ROUTE,
       ];
 
   List<HealthDataAccess> get _access =>

@@ -25,10 +25,11 @@ class AppTheme {
       colorScheme: scheme,
       scaffoldBackgroundColor: surface,
       cardTheme: CardThemeData(
+        color: scheme.surfaceContainerHighest,
         elevation: 0,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(

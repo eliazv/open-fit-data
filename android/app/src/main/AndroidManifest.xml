@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.health.READ_SLEEP" />
     <uses-permission android:name="android.permission.health.READ_WEIGHT" />
     <uses-permission android:name="android.permission.health.READ_EXERCISE" />
+    <uses-permission android:name="android.permission.health.READ_EXERCISE_ROUTE" />
     <!-- Richiesto dal package `health` per leggere WORKOUT (vedi HealthPlugin.kt: -->
     <!-- ExerciseSessionRecord aggrega anche TotalCaloriesBurnedRecord). -->
     <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />

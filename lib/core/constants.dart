@@ -18,4 +18,7 @@ class MetaKeys {
   static const String lastSyncAt = 'last_sync_at';
   static const String onboardingDone = 'onboarding_done';
   static const String autoSyncEnabled = 'auto_sync_enabled';
+  static const String profileWeightKg = 'profile_weight_kg';
+  static const String profileHeightCm = 'profile_height_cm';
+  static const String profileBirthDate = 'profile_birth_date';
 }
