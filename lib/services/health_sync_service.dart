@@ -36,6 +36,8 @@ class HealthSyncService {
     MetricType.restingHeartRate: HealthDataType.RESTING_HEART_RATE,
     MetricType.sleep: HealthDataType.SLEEP_ASLEEP,
     MetricType.weight: HealthDataType.WEIGHT,
+    MetricType.hrv: HealthDataType.HEART_RATE_VARIABILITY_RMSSD,
+    MetricType.speed: HealthDataType.SPEED,
   };
 
   List<HealthDataType> get _allTypes => [
@@ -77,6 +79,25 @@ class HealthSyncService {
   Future<bool> requestPermissions() async {
     if (await hasPermissions()) return true;
     return _health.requestAuthorization(_allTypes, permissions: _access);
+  }
+
+  Future<bool> hasHistoryAuthorization() async {
+    if (!Platform.isAndroid) return false;
+    try {
+      return await _health.isHealthDataHistoryAuthorized();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> requestHistoryAuthorization() async {
+    if (!Platform.isAndroid) return false;
+    try {
+      if (await hasHistoryAuthorization()) return true;
+      return await _health.requestHealthDataHistoryAuthorization();
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Legge tutte le metriche supportate nell'intervallo. Ogni tipo è isolato

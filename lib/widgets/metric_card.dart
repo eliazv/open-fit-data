@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Card metrica del design system: numero grande + etichetta + sottotitolo.
-/// (Lo sparkline arriverà come componente dedicato in una fase successiva.)
+import 'sparkline.dart';
+
+/// Card metrica del design system: numero grande, delta e mini trend.
 class MetricCard extends StatelessWidget {
   const MetricCard({
     super.key,
@@ -9,16 +10,26 @@ class MetricCard extends StatelessWidget {
     required this.value,
     this.subtitle,
     this.icon,
+    this.color,
+    this.trendValues = const [],
+    this.deltaPercent,
+    this.trendAsBars = false,
   });
 
   final String label;
   final String value;
   final String? subtitle;
   final IconData? icon;
+  final Color? color;
+  final List<double> trendValues;
+  final double? deltaPercent;
+  final bool trendAsBars;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final accent = color ?? theme.colorScheme.primary;
+    final delta = deltaPercent;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -29,7 +40,7 @@ class MetricCard extends StatelessWidget {
             Row(
               children: [
                 if (icon != null) ...[
-                  Icon(icon, size: 18, color: theme.colorScheme.primary),
+                  Icon(icon, size: 18, color: accent),
                   const SizedBox(width: 6),
                 ],
                 Expanded(
@@ -49,16 +60,60 @@ class MetricCard extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            if (subtitle != null) ...[
+            if (subtitle != null || delta != null) ...[
               const SizedBox(height: 4),
-              Text(
-                subtitle!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+              Row(
+                children: [
+                  if (subtitle != null)
+                    Expanded(
+                      child: Text(
+                        subtitle!,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  if (delta != null) _DeltaBadge(deltaPercent: delta),
+                ],
+              ),
+            ],
+            if (trendValues.length >= 2) ...[
+              const Spacer(),
+              Sparkline(
+                values: trendValues,
+                color: accent,
+                asBars: trendAsBars,
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class _DeltaBadge extends StatelessWidget {
+  const _DeltaBadge({required this.deltaPercent});
+
+  final double deltaPercent;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isUp = deltaPercent >= 0;
+    final color = isUp ? Colors.green.shade700 : Colors.red.shade700;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        '${isUp ? '+' : ''}${deltaPercent.toStringAsFixed(0)}%',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

@@ -21,7 +21,7 @@ dependencies:
   path: ^1.9.0
 
   # Health data (Health Connect on Android, HealthKit on iOS)
-  health: ^11.0.0
+  health: ^13.3.1
 
   # Background auto-sync
   workmanager: ^0.9.0+3
@@ -35,6 +35,7 @@ dependencies:
 
   # Export & sharing
   share_plus: ^9.0.0
+  file_picker: ^8.1.2
   csv: ^6.0.0
   archive: ^3.6.1
 

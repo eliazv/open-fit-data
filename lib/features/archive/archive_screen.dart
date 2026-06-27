@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/providers.dart';
 import '../../data/db/database.dart';
 import '../../widgets/bar_trend_chart.dart';
 import '../../widgets/empty_state.dart';
@@ -20,9 +21,17 @@ class ArchiveScreen extends ConsumerWidget {
     final asyncSummaries = ref.watch(archiveSummariesProvider);
     final theme = Theme.of(context);
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(syncServiceProvider).sync(
+              includeHistory: true,
+              trigger: 'archive_refresh',
+            );
+        ref.invalidate(archiveSummariesProvider);
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: PeriodSelector(
@@ -43,7 +52,8 @@ class ArchiveScreen extends ConsumerWidget {
           ),
           data: (summaries) => _content(context, theme, summaries),
         ),
-      ],
+        ],
+      ),
     );
   }
 

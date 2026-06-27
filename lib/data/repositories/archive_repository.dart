@@ -26,8 +26,9 @@ class ArchiveRepository {
   // --- scrittura ---
 
   /// Inserisce record grezzi scartando i duplicati identici (hash unique).
-  Future<void> insertRaw(List<CanonicalRecord> records) async {
-    if (records.isEmpty) return;
+  Future<int> insertRaw(List<CanonicalRecord> records) async {
+    if (records.isEmpty) return 0;
+    final before = await totalRecordCount();
     final now = DateTime.now();
     await _db.batch((b) {
       for (final r in records) {
@@ -51,10 +52,12 @@ class ArchiveRepository {
         );
       }
     });
+    return await totalRecordCount() - before;
   }
 
-  Future<void> insertWorkouts(List<WorkoutRecord> workouts) async {
-    if (workouts.isEmpty) return;
+  Future<int> insertWorkouts(List<WorkoutRecord> workouts) async {
+    if (workouts.isEmpty) return 0;
+    final before = await totalWorkoutCount();
     final now = DateTime.now();
     await _db.batch((b) {
       for (final w in workouts) {
@@ -78,6 +81,7 @@ class ArchiveRepository {
         );
       }
     });
+    return await totalWorkoutCount() - before;
   }
 
   /// Ricalcola gli aggregati giornalieri da tutti i record grezzi (upsert).
@@ -101,6 +105,7 @@ class ArchiveRepository {
             avgHr: Value(agg.avgHr?.toDouble()),
             weightKg: Value(agg.lastWeight),
             vo2max: Value(agg.lastVo2max),
+            hrvMs: Value(agg.lastHrvMs),
             updatedAt: now,
           ),
           onConflict: DoUpdate(
@@ -115,6 +120,7 @@ class ArchiveRepository {
               avgHr: Value(agg.avgHr?.toDouble()),
               weightKg: Value(agg.lastWeight),
               vo2max: Value(agg.lastVo2max),
+              hrvMs: Value(agg.lastHrvMs),
               updatedAt: Value(now),
             ),
             target: [_db.dailySummaries.date],
@@ -170,11 +176,93 @@ class ArchiveRepository {
     return row.read(count) ?? 0;
   }
 
+  Future<int> totalWorkoutCount() async {
+    final count = _db.workouts.id.count();
+    final row = await (_db.selectOnly(_db.workouts)..addColumns([count]))
+        .getSingle();
+    return row.read(count) ?? 0;
+  }
+
   Future<int> archivedDaysCount() async {
     final count = _db.dailySummaries.date.count();
     final row = await (_db.selectOnly(_db.dailySummaries)..addColumns([count]))
         .getSingle();
     return row.read(count) ?? 0;
+  }
+
+  Future<List<SyncLog>> recentSyncLogs({int limit = 20}) {
+    return (_db.select(_db.syncLogs)
+          ..orderBy([(t) => OrderingTerm.desc(t.startedAt)])
+          ..limit(limit))
+        .get();
+  }
+
+  Future<void> addSyncLog({
+    required DateTime startedAt,
+    required DateTime endedAt,
+    required String trigger,
+    required String status,
+    required int rawRecords,
+    required int workouts,
+    required int insertedRaw,
+    required int insertedWorkouts,
+    String? message,
+  }) {
+    return _db.into(_db.syncLogs).insert(
+          SyncLogsCompanion.insert(
+            startedAt: startedAt,
+            endedAt: Value(endedAt),
+            trigger: trigger,
+            status: status,
+            rawRecords: Value(rawRecords),
+            workouts: Value(workouts),
+            insertedRaw: Value(insertedRaw),
+            insertedWorkouts: Value(insertedWorkouts),
+            message: Value(message),
+          ),
+        );
+  }
+
+  Future<Map<String, int>> recordCountByMetric() async {
+    final rows = await _db.select(_db.healthRawRecords).get();
+    final out = <String, int>{};
+    for (final row in rows) {
+      out[row.type] = (out[row.type] ?? 0) + 1;
+    }
+    return out;
+  }
+
+  Future<Map<String, DateTime>> latestRecordByMetric() async {
+    final rows = await _db.select(_db.healthRawRecords).get();
+    final out = <String, DateTime>{};
+    for (final row in rows) {
+      final current = out[row.type];
+      if (current == null || row.endTime.isAfter(current)) {
+        out[row.type] = row.endTime;
+      }
+    }
+    return out;
+  }
+
+  Future<Map<String, int>> sourceRecordCounts() async {
+    final rows = await _db.select(_db.healthRawRecords).get();
+    final out = <String, int>{};
+    for (final row in rows) {
+      final key = row.sourceApp ?? row.sourcePlatform;
+      out[key] = (out[key] ?? 0) + 1;
+    }
+    return out;
+  }
+
+  Future<Map<String, Set<String>>> sourcesByMetric() async {
+    final rows = await _db.select(_db.healthRawRecords).get();
+    final out = <String, Set<String>>{};
+    for (final row in rows) {
+      out.putIfAbsent(row.type, () => <String>{}).add(
+            row.sourceApp ?? row.sourcePlatform,
+          );
+    }
+    return out;
   }
 
   // --- note manuali ---

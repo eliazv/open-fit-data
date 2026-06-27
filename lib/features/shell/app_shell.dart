@@ -38,7 +38,10 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   Future<void> _silentSync() async {
     try {
-      await ref.read(syncServiceProvider).sync(interactive: false);
+      await ref.read(syncServiceProvider).sync(
+        interactive: false,
+        trigger: 'startup',
+      );
       ref.invalidate(homeControllerProvider);
     } catch (_) {
       // permessi assenti o errore: si ignora, c'è il sync manuale.

@@ -1,7 +1,7 @@
 # Setup Android — Health Connect
 
 Configurazione nativa necessaria dopo `flutter create . --platforms=android`.
-Il package `health` (v11) ha requisiti specifici su Android.
+Il package `health` ha requisiti specifici su Android.
 
 ## 1. `minSdkVersion` e `compileSdk`
 
@@ -49,6 +49,9 @@ Subito sotto il tag `<manifest>`:
 <uses-permission android:name="android.permission.health.READ_WEIGHT" />
 <uses-permission android:name="android.permission.health.READ_EXERCISE" />
 <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
+<uses-permission android:name="android.permission.health.READ_SPEED" />
+<uses-permission android:name="android.permission.health.READ_HEART_RATE_VARIABILITY" />
+<uses-permission android:name="android.permission.health.READ_HEALTH_DATA_HISTORY" />
 ```
 
 > `READ_TOTAL_CALORIES_BURNED` è richiesto dal package `health` per leggere
@@ -100,7 +103,7 @@ Dentro `<application>`, accanto a `MainActivity`:
 </activity>
 ```
 
-## 4. Storico oltre 30 giorni (opzionale, fase successiva)
+## 4. Storico oltre 30 giorni
 
 Health Connect conserva di default ~30 giorni. Per leggere oltre serve il
 permesso storico:
@@ -110,8 +113,9 @@ permesso storico:
 ```
 
 …e la chiamata `Health().requestHealthDataHistoryAuthorization()` prima di
-leggere intervalli più ampi. La v1 resta dentro i 30 giorni (vedi
-ANALISI_ROADMAP §5).
+leggere intervalli più ampi. L'app ora la richiede durante il sync manuale:
+se viene concessa fa un import iniziale esteso, altrimenti resta nella
+finestra rolling di 30 giorni.
 
 ## 5. workmanager (auto-sync)
 

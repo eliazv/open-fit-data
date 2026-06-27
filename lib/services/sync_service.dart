@@ -27,23 +27,66 @@ class SyncService {
   Future<SyncOutcome> sync({
     int windowDays = AppConstants.defaultSyncWindowDays,
     bool interactive = true,
+    bool includeHistory = false,
+    String trigger = 'manual',
   }) async {
-    await _health.configure();
+    final startedAt = DateTime.now();
+    var rawRecords = 0;
+    var workouts = 0;
+    var insertedRaw = 0;
+    var insertedWorkouts = 0;
 
-    final granted = interactive
-        ? await _health.requestPermissions()
-        : await _health.hasPermissions();
-    if (!granted) throw const HealthPermissionDenied();
+    try {
+      await _health.configure();
 
-    final now = DateTime.now();
-    final start = now.subtract(Duration(days: windowDays));
-    final result = await _health.read(start: start, end: now);
+      final granted = interactive
+          ? await _health.requestPermissions()
+          : await _health.hasPermissions();
+      if (!granted) throw const HealthPermissionDenied();
 
-    await _repo.insertRaw(result.records);
-    await _repo.insertWorkouts(result.workouts);
-    await _repo.recomputeDailySummaries();
-    await _repo.setMeta(MetaKeys.lastSyncAt, now.toIso8601String());
+      final historyGranted = includeHistory && interactive
+          ? await _health.requestHistoryAuthorization()
+          : await _health.hasHistoryAuthorization();
 
-    return SyncOutcome(imported: result.total, at: now);
+      final now = DateTime.now();
+      final start = historyGranted
+          ? DateTime(2000)
+          : now.subtract(Duration(days: windowDays));
+      final result = await _health.read(start: start, end: now);
+      rawRecords = result.records.length;
+      workouts = result.workouts.length;
+
+      insertedRaw = await _repo.insertRaw(result.records);
+      insertedWorkouts = await _repo.insertWorkouts(result.workouts);
+      await _repo.recomputeDailySummaries();
+      await _repo.setMeta(MetaKeys.lastSyncAt, now.toIso8601String());
+
+      await _repo.addSyncLog(
+        startedAt: startedAt,
+        endedAt: DateTime.now(),
+        trigger: trigger,
+        status: 'success',
+        rawRecords: rawRecords,
+        workouts: workouts,
+        insertedRaw: insertedRaw,
+        insertedWorkouts: insertedWorkouts,
+        message: historyGranted ? 'history' : 'rolling_$windowDays',
+      );
+
+      return SyncOutcome(imported: insertedRaw + insertedWorkouts, at: now);
+    } catch (e) {
+      await _repo.addSyncLog(
+        startedAt: startedAt,
+        endedAt: DateTime.now(),
+        trigger: trigger,
+        status: 'error',
+        rawRecords: rawRecords,
+        workouts: workouts,
+        insertedRaw: insertedRaw,
+        insertedWorkouts: insertedWorkouts,
+        message: e.toString(),
+      );
+      rethrow;
+    }
   }
 }
